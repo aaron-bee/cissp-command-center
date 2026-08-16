@@ -5,7 +5,7 @@ services:
     plan: starter
     branch: main
     buildCommand: pip install -r requirements.txt
-    startCommand: python database.py && gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 120
+    startCommand: python database.py && gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120
     healthCheckPath: /health
 
     envVars:
@@ -15,11 +15,16 @@ services:
       - key: SECRET_KEY
         generateValue: true
 
+      # Used only to bootstrap the first/admin account during v1.2 migration.
+      # Existing Render values can remain in place.
       - key: DASHBOARD_USERNAME
         sync: false
 
       - key: DASHBOARD_PASSWORD
         sync: false
+
+      - key: DASHBOARD_DISPLAY_NAME
+        value: Aaron
 
     disk:
       name: certification-command-center-data

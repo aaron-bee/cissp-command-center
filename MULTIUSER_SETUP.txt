@@ -1,0 +1,95 @@
+CERTIFICATION COMMAND CENTER v1.2
+MULTI-USER BUILD
+
+PURPOSE
+-------
+This version supports a maximum of 3 active users:
+- Aaron/admin
+- Friend 1
+- Friend 2
+
+Each user has:
+- Separate CISM/CISSP question totals
+- Separate readiness scores
+- Separate assessment history
+- Separate study history
+- Separate weak-topic queue
+- Separate exam dates / campaign settings
+- Separate adaptive campaign recommendations
+
+Aaron's February 2026 CISM historical attempt remains assigned only to Aaron.
+
+MIGRATION
+---------
+This build migrates the existing v1.1 database in place.
+
+On first startup after deployment:
+1. A users table is created.
+2. The existing Render DASHBOARD_USERNAME / DASHBOARD_PASSWORD credentials
+   become the first administrator account.
+3. Existing domain totals are copied into that admin user's private stats.
+4. Existing assessments, study sessions, weak topics, settings, and historical
+   CISM attempt are assigned to that admin user.
+5. New users begin with zero study data.
+
+IMPORTANT
+---------
+BACK UP /var/data/cissp.db before deploying v1.2.
+
+You already have:
+    /var/data/cissp.db.pre-migration
+
+Create another v1.2 backup before deployment if desired:
+    cp /var/data/cissp.db /var/data/cissp.db.pre-v1.2
+
+FILES TO REPLACE / ADD
+----------------------
+app.py
+database.py
+render.yaml
+static/style.css
+templates/index.html
+templates/login.html
+templates/admin_users.html
+
+requirements.txt and .python-version remain compatible and are included.
+
+LOCAL TEST
+----------
+cd D:\Projects\cissp-command-center
+.\.venv\Scripts\Activate.ps1
+python database.py
+python app.py
+
+If DASHBOARD_PASSWORD is not set locally, the bootstrap account is:
+    username: admin
+    password: admin
+
+That fallback is LOCAL DEVELOPMENT ONLY.
+Render already has a real DASHBOARD_PASSWORD.
+
+ADMIN USER MANAGEMENT
+---------------------
+After logging in as the administrator:
+1. Click "Users" in the header.
+2. Create up to two additional accounts.
+3. Give each friend their username + temporary password.
+4. You can reset passwords or disable accounts from the same screen.
+
+There is intentionally NO public registration page.
+
+GIT
+---
+git status
+git add .
+git commit -m "v1.2 - Add isolated multi-user study accounts"
+git push origin main
+
+RENDER
+------
+Render should auto-deploy after the push.
+
+Because the database is on /var/data, the schema migration occurs against
+the persistent production database when the service starts.
+
+Do not delete the persistent disk.

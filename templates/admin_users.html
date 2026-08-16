@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        User Administration
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+</head>
+
+<body>
+
+<main class="container admin-container">
+
+    <header class="admin-header">
+
+        <div>
+
+            <p class="eyebrow">
+                CERTIFICATION OPERATIONS
+            </p>
+
+            <h1>
+                User Administration
+            </h1>
+
+            <p class="subtitle">
+                Up to {{ max_active_users }} active users.
+                Each account has isolated study data.
+            </p>
+
+        </div>
+
+
+        <a
+            class="admin-back-link"
+            href="{{ url_for('dashboard') }}"
+        >
+            ← Dashboard
+        </a>
+
+    </header>
+
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+
+        {% if messages %}
+
+            {% for category, message in messages %}
+
+                <div class="flash flash-{{ category }}">
+                    {{ message }}
+                </div>
+
+            {% endfor %}
+
+        {% endif %}
+
+    {% endwith %}
+
+
+    <section class="admin-grid">
+
+        <article class="panel">
+
+            <p class="label">
+                CREATE USER
+            </p>
+
+            <h2>
+                Add Study Account
+            </h2>
+
+            <p class="admin-help">
+                No public registration exists. You create the account
+                and give the person their temporary credentials.
+            </p>
+
+
+            <form
+                method="POST"
+                class="stack-form"
+            >
+
+                <input
+                    type="hidden"
+                    name="action"
+                    value="create"
+                >
+
+
+                <label>
+                    Display Name
+
+                    <input
+                        type="text"
+                        name="display_name"
+                        placeholder="Chris"
+                        required
+                    >
+                </label>
+
+
+                <label>
+                    Username
+
+                    <input
+                        type="text"
+                        name="username"
+                        minlength="3"
+                        autocomplete="off"
+                        required
+                    >
+                </label>
+
+
+                <label>
+                    Temporary Password
+
+                    <input
+                        type="password"
+                        name="password"
+                        minlength="10"
+                        autocomplete="new-password"
+                        required
+                    >
+                </label>
+
+
+                <button type="submit">
+                    Create User
+                </button>
+
+            </form>
+
+        </article>
+
+
+        <article class="panel">
+
+            <p class="label">
+                ACCOUNTS
+            </p>
+
+            <h2>
+                Current Users
+            </h2>
+
+
+            <div class="user-admin-list">
+
+                {% for user in users %}
+
+                    <div class="user-admin-card">
+
+                        <div class="user-admin-heading">
+
+                            <div>
+
+                                <strong>
+                                    {{ user["display_name"] }}
+                                </strong>
+
+                                <span>
+                                    @{{ user["username"] }}
+                                </span>
+
+                            </div>
+
+
+                            <div class="user-badges">
+
+                                {% if user["is_admin"] %}
+
+                                    <span class="user-badge admin-badge">
+                                        ADMIN
+                                    </span>
+
+                                {% endif %}
+
+
+                                <span
+                                    class="
+                                        user-badge
+                                        {% if user['is_active'] %}
+                                            active-badge
+                                        {% else %}
+                                            disabled-badge
+                                        {% endif %}
+                                    "
+                                >
+                                    {% if user["is_active"] %}
+                                        ACTIVE
+                                    {% else %}
+                                        DISABLED
+                                    {% endif %}
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <form
+                            method="POST"
+                            class="user-inline-form"
+                        >
+
+                            <input
+                                type="hidden"
+                                name="action"
+                                value="reset_password"
+                            >
+
+                            <input
+                                type="hidden"
+                                name="user_id"
+                                value="{{ user['id'] }}"
+                            >
+
+                            <input
+                                type="password"
+                                name="new_password"
+                                minlength="10"
+                                placeholder="New password"
+                                autocomplete="new-password"
+                                required
+                            >
+
+                            <button type="submit">
+                                Reset
+                            </button>
+
+                        </form>
+
+
+                        {% if user["id"] != current_user["id"] %}
+
+                            <form
+                                method="POST"
+                            >
+
+                                <input
+                                    type="hidden"
+                                    name="action"
+                                    value="toggle_active"
+                                >
+
+                                <input
+                                    type="hidden"
+                                    name="user_id"
+                                    value="{{ user['id'] }}"
+                                >
+
+                                <button
+                                    type="submit"
+                                    class="secondary-button"
+                                >
+                                    {% if user["is_active"] %}
+                                        Disable Account
+                                    {% else %}
+                                        Enable Account
+                                    {% endif %}
+                                </button>
+
+                            </form>
+
+                        {% endif %}
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        </article>
+
+    </section>
+
+</main>
+
+</body>
+</html>

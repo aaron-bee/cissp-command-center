@@ -1136,3 +1136,175 @@ button {
         justify-content: center;
     }
 }
+
+
+/* =========================================================
+   V1.2 MULTI-USER
+========================================================= */
+
+.signed-in-user {
+    display: grid;
+    gap: 1px;
+    padding: 0 10px;
+    text-align: right;
+}
+
+.signed-in-user span {
+    color: var(--muted);
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.signed-in-user strong {
+    color: var(--text);
+    font-size: 0.78rem;
+}
+
+.admin-link,
+.admin-back-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 0 12px;
+    color: var(--blue);
+    border: 1px solid rgba(88, 166, 255, 0.28);
+    border-radius: 7px;
+    background: rgba(88, 166, 255, 0.06);
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.admin-link:hover,
+.admin-back-link:hover {
+    color: #fff;
+    border-color: rgba(88, 166, 255, 0.55);
+}
+
+.admin-container {
+    width: min(1120px, 94%);
+}
+
+.admin-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 30px;
+}
+
+.admin-grid {
+    display: grid;
+    grid-template-columns: minmax(300px, 0.8fr) minmax(440px, 1.4fr);
+    gap: 15px;
+}
+
+.admin-help {
+    color: var(--muted);
+    font-size: 0.82rem;
+    line-height: 1.55;
+}
+
+.user-admin-list {
+    display: grid;
+    gap: 12px;
+}
+
+.user-admin-card {
+    padding: 16px;
+    background: var(--panel-alt);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.user-admin-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.user-admin-heading > div:first-child {
+    display: grid;
+    gap: 3px;
+}
+
+.user-admin-heading span {
+    color: var(--muted);
+    font-size: 0.72rem;
+}
+
+.user-badges {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.user-badge {
+    padding: 4px 7px;
+    border-radius: 999px;
+    font-size: 0.55rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+}
+
+.admin-badge {
+    color: var(--blue);
+    background: rgba(88, 166, 255, 0.10);
+}
+
+.active-badge {
+    color: var(--green);
+    background: rgba(63, 185, 80, 0.10);
+}
+
+.disabled-badge {
+    color: var(--red);
+    background: rgba(248, 81, 73, 0.10);
+}
+
+.user-inline-form {
+    display: grid;
+    grid-template-columns: 1fr 90px;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.user-inline-form input,
+.user-inline-form button {
+    margin: 0;
+}
+
+.secondary-button {
+    background: transparent;
+}
+
+@media (max-width: 900px) {
+    .admin-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 750px) {
+    .signed-in-user {
+        text-align: center;
+        padding: 6px 0;
+    }
+
+    .admin-header {
+        display: block;
+    }
+
+    .admin-back-link {
+        margin-top: 18px;
+    }
+
+    .user-inline-form {
+        grid-template-columns: 1fr;
+    }
+}

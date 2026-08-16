@@ -51,6 +51,12 @@
         </div>
 
         <div class="header-actions">
+
+        <div class="signed-in-user">
+            <span>Signed in as</span>
+            <strong>{{ current_user["display_name"] }}</strong>
+        </div>
+
         <nav class="cert-toggle">
             <a href="{{ url_for('dashboard', cert='CISM') }}"
                class="{% if active_cert == 'CISM' %}active{% endif %}">CISM</a>
@@ -58,7 +64,22 @@
                class="{% if active_cert == 'CISSP' %}active{% endif %}">CISSP</a>
         </nav>
 
-        <a class="logout-link" href="{{ url_for('logout') }}">Sign out</a>
+        {% if current_user["is_admin"] %}
+            <a
+                class="admin-link"
+                href="{{ url_for('admin_users') }}"
+            >
+                Users
+            </a>
+        {% endif %}
+
+        <a
+            class="logout-link"
+            href="{{ url_for('logout') }}"
+        >
+            Sign out
+        </a>
+
         </div>
     </header>
 
