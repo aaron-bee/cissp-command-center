@@ -1,691 +1,727 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>CISSP Command Center</title>
-
-    <link
-        rel="stylesheet"
-        href="{{ url_for('static', filename='style.css') }}"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certification Command Center</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
-
 <main class="container">
 
+    <section class="priority-banner">
+        <div class="priority-main">
+            <p class="priority-kicker">
+                TODAY'S PRIORITY · {{ campaign["banner"]["phase"] }}
+                {% if campaign["banner"]["data_driven"] %}
+                    <span class="data-driven-badge">DATA DRIVEN</span>
+                {% endif %}
+            </p>
+
+            <h2>{{ campaign["banner"]["headline"] }}</h2>
+            <p>{{ campaign["banner"]["prescription"] }}</p>
+        </div>
+
+        <div class="priority-exams">
+            <div>
+                <span>CISM</span>
+                <strong>
+                    {% if cism_days is not none %}
+                        {% if cism_days >= 0 %}{{ cism_days }} days{% else %}Complete{% endif %}
+                    {% else %}Not Set{% endif %}
+                </strong>
+            </div>
+            <div>
+                <span>CISSP</span>
+                <strong>
+                    {% if cissp_days is not none %}
+                        {% if cissp_days >= 0 %}{{ cissp_days }} days{% else %}Complete{% endif %}
+                    {% else %}Not Set{% endif %}
+                </strong>
+            </div>
+        </div>
+    </section>
+
     <header class="hero">
-
         <div>
-            <p class="eyebrow">
-                CERTIFICATION OPERATIONS
-            </p>
-
-            <h1>CISSP Command Center</h1>
-
-            <p class="subtitle">
-                Measure weakness. Prescribe work. Earn the pass.
-            </p>
+            <p class="eyebrow">CERTIFICATION OPERATIONS</p>
+            <h1>Certification Command Center</h1>
+            <p class="subtitle">Measure weakness. Prescribe work. Earn the pass.</p>
         </div>
 
-        <div class="phase-badge">
-            {{ settings["phase"] }} PHASE
-        </div>
-
+        <nav class="cert-toggle">
+            <a href="{{ url_for('dashboard', cert='CISM') }}"
+               class="{% if active_cert == 'CISM' %}active{% endif %}">CISM</a>
+            <a href="{{ url_for('dashboard', cert='CISSP') }}"
+               class="{% if active_cert == 'CISSP' %}active{% endif %}">CISSP</a>
+        </nav>
     </header>
 
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="dashboard-heading">
+        <div>
+            <p class="label">ACTIVE DASHBOARD</p>
+            <h2>{{ active_cert }} Readiness</h2>
+        </div>
+
+        <span class="evidence-rule">
+            READY = ≥80% + ≥{{ config["sample_target"] }} questions/domain
+        </span>
+    </div>
 
     <section class="command-grid">
-
         <article class="panel mission-panel">
-
-            <p class="label">
-                {{ next_action["priority"] }}
-            </p>
-
-            <h2>
-                {{ next_action["title"] }}
-            </h2>
-
-            <p class="mission-text">
-                {{ next_action["instruction"] }}
-            </p>
-
+            <p class="label">{{ next_action["priority"] }}</p>
+            <h2>{{ next_action["title"] }}</h2>
+            <p class="mission-text">{{ next_action["instruction"] }}</p>
         </article>
 
-
         <article class="panel readiness-panel">
-
-            <p class="label">
-                EXAM DECISION
-            </p>
-
+            <p class="label">EXAM DECISION</p>
             <div class="decision decision-{{ readiness['decision']|lower }}">
                 {{ readiness["decision"] }}
             </div>
-
-            <div class="readiness-number">
-                {{ readiness["score"] }}%
-            </div>
-
-            <p>
-                {{ readiness["reason"] }}
-            </p>
-
+            <div class="readiness-number">{{ readiness["score"] }}%</div>
+            <p>{{ readiness["reason"] }}</p>
         </article>
-
     </section>
-
 
     <section class="metric-grid">
-
+        <article class="metric"><span>Questions</span><strong>{{ total_questions }}</strong></article>
+        <article class="metric"><span>Accuracy</span><strong>{{ overall_accuracy }}%</strong></article>
+        <article class="metric"><span>Tracked Hours</span><strong>{{ total_hours }}</strong></article>
+        <article class="metric"><span>Green Accuracy</span><strong>{{ readiness["green_count"] }}/{{ config["domain_count"] }}</strong></article>
+        <article class="metric"><span>Ready Domains</span><strong>{{ readiness["ready_count"] }}/{{ config["domain_count"] }}</strong></article>
         <article class="metric">
-            <span>Questions</span>
-            <strong>{{ total_questions }}</strong>
+            <span>Mock Avg</span>
+            <strong>{% if mock_stats["average"] is not none %}{{ mock_stats["average"] }}%{% else %}—{% endif %}</strong>
         </article>
-
-        <article class="metric">
-            <span>Accuracy</span>
-            <strong>{{ overall_accuracy }}%</strong>
-        </article>
-
-        <article class="metric">
-            <span>Study Hours</span>
-            <strong>{{ total_hours }}</strong>
-        </article>
-
-        <article class="metric">
-            <span>Green Domains</span>
-            <strong>
-                {{ readiness.get("green_count", 0) }}/8
-            </strong>
-        </article>
-
-        <article class="metric">
-            <span>CISM</span>
-            <strong>
-                {% if cism_days is not none %}
-                    {{ cism_days }} days
-                {% else %}
-                    —
-                {% endif %}
-            </strong>
-        </article>
-
-        <article class="metric">
-            <span>CISSP</span>
-            <strong>
-                {% if cissp_days is not none %}
-                    {{ cissp_days }} days
-                {% else %}
-                    Not Set
-                {% endif %}
-            </strong>
-        </article>
-
     </section>
 
-
+    {% if active_cert == "CISM" and historical_attempt %}
     <section class="section">
-
         <div class="section-heading">
             <div>
-                <p class="label">
-                    PERFORMANCE
-                </p>
-
-                <h2>Eight Domains</h2>
+                <p class="label">PREVIOUS EXAM BASELINE</p>
+                <h2>{{ historical_attempt["period"] }} CISM Attempt</h2>
             </div>
-
-            <p class="section-note">
-                Green requires ≥80% and ≥100 questions.
-            </p>
+            <span class="section-note">
+                Historical diagnostic only — current practice data overrides it.
+            </span>
         </div>
 
-
-        <div class="domain-grid">
-
-            {% for domain in domains %}
-
-            <article
-                class="domain-card status-{{ domain['status']|lower }}"
-            >
-
-                <div class="domain-top">
-
-                    <span>
-                        DOMAIN {{ domain["id"] }}
-                    </span>
-
-                    <strong>
-                        {{ domain["status"] }}
-                    </strong>
-
-                </div>
-
-
-                <h3>
-                    {{ domain["name"] }}
-                </h3>
-
-
-                <div class="domain-score">
-                    {{ domain["accuracy"] }}%
-                </div>
-
-
-                <div class="progress-track">
-
-                    <div
-                        class="progress-fill"
-                        style="width: {{ domain['accuracy'] }}%"
-                    ></div>
-
-                </div>
-
-
-                <div class="domain-stats">
-
-                    <span>
-                        {{ domain["questions_correct"] }}
-                        /
-                        {{ domain["questions_answered"] }}
-                        correct
-                    </span>
-
-                    <span>
-                        Weight {{ domain["weight"] }}%
-                    </span>
-
-                </div>
-
-
-                {% if domain["dominant_miss"] %}
-
-                <p class="weakness">
-                    Primary miss:
-                    <strong>
-                        {{ domain["dominant_miss"] }}
-                    </strong>
-                </p>
-
-                {% endif %}
-
+        <section class="historical-summary">
+            <article class="historical-overall">
+                <p class="label">OVERALL RESULT</p>
+                <div class="historical-overall-score">{{ historical_attempt["overall_score"] }}</div>
+                <strong class="historical-fail">{{ historical_attempt["result"] }}</strong>
+                <p>450 reference score</p>
             </article>
 
-            {% endfor %}
+            <article class="historical-priority">
+                <p class="label">HISTORICAL PRIORITY</p>
+                <h3>{{ historical_attempt["priority"]["name"] }}</h3>
+                <p>
+                    Previous score: <strong>{{ historical_attempt["priority"]["score"] }}</strong>
+                    · Exam weight: <strong>{{ historical_attempt["priority"]["weight"] }}%</strong>
+                </p>
+                <p>
+                    This only drives recommendations while current evidence is thin.
+                    Once current Pocket Prep data is strong enough, the old attempt loses priority.
+                </p>
+            </article>
+        </section>
 
+        <div class="historical-domain-grid">
+            {% for domain in historical_attempt["domains"] %}
+            <article class="historical-domain-card">
+                <div class="historical-domain-top">
+                    <span>DOMAIN {{ domain["number"] }}</span>
+                    <strong class="historical-status historical-{{ domain['historical_status']|lower|replace(' ', '-') }}">
+                        {{ domain["historical_status"] }}
+                    </strong>
+                </div>
+
+                <h3>{{ domain["name"] }}</h3>
+
+                <div class="historical-score-row">
+                    <strong>{{ domain["score"] }}</strong>
+                    <span>/ 800 scaled</span>
+                </div>
+
+                <div class="historical-scale">
+                    <div class="historical-score-fill" style="width: {{ domain['visual_percent'] }}%"></div>
+                    <div class="historical-reference-marker"
+                         style="left: {{ domain['pass_marker_percent'] }}%"
+                         title="450 reference"></div>
+                </div>
+
+                <div class="historical-scale-labels">
+                    <span>200</span>
+                    <span class="reference-label">450</span>
+                    <span>800</span>
+                </div>
+
+                <div class="historical-domain-meta">
+                    <span>Weight {{ domain["weight"] }}%</span>
+                    <span>Gap to 450: {{ domain["gap"] }}</span>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <section class="section">
+        <div class="section-heading">
+            <div>
+                <p class="label">CAMPAIGN PLAN</p>
+                <h2>CISM → CISSP Study Plan</h2>
+            </div>
+            <span class="section-note">
+                Strategy stays fixed. The prescription inside each card adapts to your data.
+            </span>
         </div>
 
+        <div class="campaign-plan">
+            {% for phase in campaign["phases"] %}
+                <button
+                    type="button"
+                    class="campaign-card phase-{{ phase['status']|lower }}"
+                    onclick="openPhaseModal('phase-modal-{{ loop.index }}')"
+                >
+                    <div class="campaign-phase-top">
+                        <span>{{ "%02d"|format(loop.index) }}</span>
+                        <strong>{{ phase["status"] }}</strong>
+                    </div>
+
+                    <h3>{{ phase["title"] }}</h3>
+                    <p class="phase-dates">{{ phase["dates"] }}</p>
+                    <p class="phase-short">{{ phase["work"] }}</p>
+
+                    {% if phase["adaptive_prescription"]["adaptive"] %}
+                    <div class="card-adaptive-summary">
+                        <span class="data-driven-badge">DATA DRIVEN</span>
+                        <strong>{{ phase["adaptive_prescription"]["headline"] }}</strong>
+                        <small>{{ phase["adaptive_prescription"]["summary"] }}</small>
+                    </div>
+                    {% endif %}
+
+                    <div class="card-open-hint">Open plan →</div>
+                </button>
+            {% endfor %}
+        </div>
     </section>
 
+    <section class="section">
+        <div class="section-heading">
+            <div>
+                <p class="label">CURRENT PERFORMANCE</p>
+                <h2>{{ active_cert }} Domains</h2>
+            </div>
+
+            <div class="legend">
+                <span><i class="dot red-dot"></i>&lt;70%</span>
+                <span><i class="dot yellow-dot"></i>70–79.9%</span>
+                <span><i class="dot green-dot"></i>≥80%</span>
+            </div>
+        </div>
+
+        <div class="domain-grid {% if active_cert == 'CISM' %}domain-grid-four{% endif %}">
+            {% for domain in domains %}
+                <article class="domain-card status-{{ domain['color_status']|lower }}">
+                    <div class="domain-top">
+                        <span>DOMAIN {{ domain["number"] }}</span>
+                        <span>Weight {{ domain["weight"] }}%</span>
+                    </div>
+
+                    <h3>{{ domain["name"] }}</h3>
+                    <div class="domain-score">{{ domain["accuracy"] }}%</div>
+
+                    <div class="progress-track">
+                        <div class="progress-fill" style="width: {{ domain['accuracy'] }}%"></div>
+                    </div>
+
+                    <div class="domain-stats">
+                        <span>{{ domain["questions_correct"] }}/{{ domain["questions_answered"] }} correct</span>
+                        <span class="readiness-label readiness-{{ domain['readiness_status']|lower|replace(' ', '-') }}">
+                            {{ domain["readiness_status"] }}
+                        </span>
+                    </div>
+
+                    <div class="evidence-block">
+                        <div class="evidence-copy">
+                            <span>Evidence</span>
+                            <strong>{{ domain["questions_answered"] }}/{{ domain["sample_target"] }}</strong>
+                        </div>
+
+                        <div class="evidence-track">
+                            <div class="evidence-fill" style="width: {{ domain['evidence_percent'] }}%"></div>
+                        </div>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    </section>
 
     <section class="two-column section">
-
         <article class="panel">
+            <p class="label">LOG ASSESSMENT</p>
+            <h2>Question Set</h2>
 
-            <p class="label">
-                LOG WORK
-            </p>
-
-            <h2>Study Session</h2>
-
-
-            <form
-                action="{{ url_for('log_session') }}"
-                method="POST"
-                class="stack-form"
-            >
+            <form action="{{ url_for('log_assessment') }}" method="POST" class="stack-form">
+                <input type="hidden" name="certification" value="{{ active_cert }}">
 
                 <label>
-                    Domain
-
-                    <select name="domain_id" required>
-
-                        {% for domain in domains %}
-
-                        <option value="{{ domain['id'] }}">
-                            D{{ domain["id"] }} —
-                            {{ domain["name"] }}
-                        </option>
-
-                        {% endfor %}
-
+                    Assessment Type
+                    <select name="assessment_type" id="assessmentType" onchange="toggleAssessmentMode()">
+                        <option value="single">Single Domain</option>
+                        <option value="mixed">Mixed Multi-Domain</option>
+                        <option value="mock">Mock Readiness Exam</option>
                     </select>
                 </label>
 
-
-                <div class="form-grid">
-
-                    <label>
-                        Questions
-                        <input
-                            type="number"
-                            name="questions"
-                            min="0"
-                            value="0"
-                            required
-                        >
-                    </label>
-
-                    <label>
-                        Correct
-                        <input
-                            type="number"
-                            name="correct"
-                            min="0"
-                            value="0"
-                            required
-                        >
-                    </label>
-
-                    <label>
-                        Minutes
-                        <input
-                            type="number"
-                            name="minutes"
-                            min="0"
-                            value="30"
-                            required
-                        >
-                    </label>
-
-                </div>
-
-
-                <p class="form-title">
-                    Classify misses
-                </p>
-
-
-                <div class="form-grid">
-
-                    <label>
-                        Knowledge
-                        <input
-                            type="number"
-                            name="knowledge_misses"
-                            min="0"
-                            value="0"
-                        >
-                    </label>
-
-                    <label>
-                        Interpretation
-                        <input
-                            type="number"
-                            name="interpretation_misses"
-                            min="0"
-                            value="0"
-                        >
-                    </label>
-
-                    <label>
-                        CISSP Mindset
-                        <input
-                            type="number"
-                            name="mindset_misses"
-                            min="0"
-                            value="0"
-                        >
-                    </label>
-
-                </div>
-
-
                 <label>
-                    Resource
-
-                    <select name="resource">
-
-                        <option>
-                            Pocket Prep
-                        </option>
-
-                        <option>
-                            ISC2 Self-Paced
-                        </option>
-
-                        <option>
-                            Chapple Study Guide
-                        </option>
-
-                        <option>
-                            7th Edition Reference
-                        </option>
-
-                        <option>
-                            Targeted Video
-                        </option>
-
+                    Source
+                    <select name="source">
+                        <option>Pocket Prep</option>
+                        {% if active_cert == "CISSP" %}
+                            <option>ISC2 Practice</option>
+                        {% endif %}
+                        <option>Other</option>
                     </select>
-
                 </label>
 
+                <div id="singleDomainSection">
+                    <label>
+                        Domain
+                        <select name="domain_id">
+                            {% for domain in domains %}
+                                <option value="{{ domain['id'] }}">{{ domain["name"] }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                </div>
+
+                <div class="form-grid">
+                    <label>Answered<input type="number" name="questions" min="1" required></label>
+                    <label>Correct<input type="number" name="correct" min="0" required></label>
+                    <label>Minutes<input type="number" name="minutes" min="0" value="30"></label>
+                </div>
+
+                <div id="mixedDomainSection" class="mixed-domain-section" style="display:none;">
+                    <p class="form-title">Subject Insights</p>
+                    <p class="form-help">
+                        Copy the Correct / Answered values shown by the question source.
+                    </p>
+
+                    <div class="mixed-column-headings">
+                        <span>Domain</span><span>Answered</span><span>Correct</span>
+                    </div>
+
+                    {% for domain in domains %}
+                        <div class="mixed-row">
+                            <span class="mixed-domain-name">{{ domain["name"] }}</span>
+                            <input type="number" name="domain_{{ domain['number'] }}_questions" min="0" placeholder="0">
+                            <input type="number" name="domain_{{ domain['number'] }}_correct" min="0" placeholder="0">
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div id="mockSection" class="mock-message" style="display:none;">
+                    <strong>Mock Readiness Exam</strong>
+                    <p>
+                        This contributes to overall exam readiness, but does not alter individual domain scores.
+                    </p>
+                </div>
+
+                <p class="form-title">Classify Misses</p>
+                <p class="form-help">Optional. Classify only when the reason is clear.</p>
+
+                <div class="form-grid">
+                    <label>Knowledge<input type="number" name="knowledge_misses" min="0" value="0"></label>
+                    <label>Interpretation<input type="number" name="interpretation_misses" min="0" value="0"></label>
+                    <label>{{ active_cert }} Mindset<input type="number" name="mindset_misses" min="0" value="0"></label>
+                </div>
 
                 <label>
                     Notes
-
-                    <textarea
-                        name="notes"
-                        rows="3"
-                        placeholder="What actually gave you trouble?"
-                    ></textarea>
+                    <textarea name="notes" rows="3" placeholder="What actually gave you trouble?"></textarea>
                 </label>
 
-
-                <button type="submit">
-                    Log Session
-                </button>
-
+                <button type="submit">Log Assessment</button>
             </form>
-
         </article>
-
 
         <article class="panel">
+            <p class="label">LOG STUDY</p>
+            <h2>Focused Study</h2>
 
-            <p class="label">
-                REMEDIATION QUEUE
-            </p>
+            <form action="{{ url_for('log_study') }}" method="POST" class="stack-form">
+                <input type="hidden" name="certification" value="{{ active_cert }}">
 
-            <h2>Weak Topics</h2>
+                <label>
+                    Domain
+                    <select name="study_domain_id">
+                        <option value="">General / Multi-Domain</option>
+                        {% for domain in domains %}
+                            <option value="{{ domain['id'] }}">{{ domain["name"] }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
 
+                <label>
+                    Resource
+                    <select name="study_resource">
+                        {% if active_cert == "CISSP" %}
+                            <option>ISC2 Self-Paced</option>
+                            <option>Pocket Prep</option>
+                            <option>Chapple Study Guide</option>
+                            <option>7th Edition Reference</option>
+                            <option>Targeted Video</option>
+                        {% else %}
+                            <option>Pocket Prep</option>
+                            <option>Chapple CISM Study Guide</option>
+                            <option>YouTube</option>
+                        {% endif %}
+                        <option>Other</option>
+                    </select>
+                </label>
 
-            <form
-                action="{{ url_for('add_topic') }}"
-                method="POST"
-                class="topic-form"
-            >
+                <label>
+                    Minutes
+                    <input type="number" name="study_minutes" min="1" value="30" required>
+                </label>
 
-                <select name="domain_id">
+                <label>
+                    Notes
+                    <textarea name="study_notes" rows="3" placeholder="What did you study or clarify?"></textarea>
+                </label>
 
-                    {% for domain in domains %}
-
-                    <option value="{{ domain['id'] }}">
-                        D{{ domain["id"] }}
-                    </option>
-
-                    {% endfor %}
-
-                </select>
-
-                <input
-                    type="text"
-                    name="topic"
-                    placeholder="Kerberos, Biba, RTO/RPO..."
-                    required
-                >
-
-                <button type="submit">
-                    Add
-                </button>
-
+                <button type="submit">Log Study</button>
             </form>
-
-
-            <div class="topic-list">
-
-                {% if open_topics %}
-
-                    {% for topic in open_topics %}
-
-                    <div class="topic-row">
-
-                        <div>
-                            <strong>
-                                D{{ topic["domain_id"] }}
-                            </strong>
-
-                            {{ topic["topic"] }}
-
-                            <small>
-                                {{ topic["domain_name"] }}
-                            </small>
-                        </div>
-
-                        <form
-                            action="{{ url_for(
-                                'resolve_topic',
-                                topic_id=topic['id']
-                            ) }}"
-                            method="POST"
-                        >
-
-                            <button class="small-button">
-                                Resolve
-                            </button>
-
-                        </form>
-
-                    </div>
-
-                    {% endfor %}
-
-                {% else %}
-
-                    <p class="empty-state">
-                        No open weaknesses logged.
-                    </p>
-
-                {% endif %}
-
-            </div>
-
         </article>
-
     </section>
 
-
     <section class="two-column section">
+        <article class="panel">
+            <p class="label">REMEDIATION QUEUE</p>
+            <h2>Weak Topics</h2>
+
+            <form action="{{ url_for('add_topic') }}" method="POST" class="topic-form">
+                <input type="hidden" name="certification" value="{{ active_cert }}">
+
+                <select name="domain_id">
+                    {% for domain in domains %}
+                        <option value="{{ domain['id'] }}">{{ domain["name"] }}</option>
+                    {% endfor %}
+                </select>
+
+                <input type="text" name="topic" placeholder="Topic or concept..." required>
+                <button type="submit">Add</button>
+            </form>
+
+            {% if open_topics %}
+                {% for topic in open_topics %}
+                    <div class="topic-row">
+                        <div>
+                            <strong>{{ topic["domain_name"] }}</strong>
+                            <span>{{ topic["topic"] }}</span>
+                        </div>
+
+                        <form action="{{ url_for('resolve_topic', topic_id=topic['id']) }}" method="POST">
+                            <input type="hidden" name="certification" value="{{ active_cert }}">
+                            <button class="small-button">Resolve</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="empty-state">No open weaknesses logged.</p>
+            {% endif %}
+        </article>
 
         <article class="panel">
+            <p class="label">ASSESSMENT HISTORY</p>
+            <h2>Recent Assessments</h2>
 
-            <p class="label">
-                HISTORY
-            </p>
-
-            <h2>Recent Sessions</h2>
-
-
-            <div class="session-list">
-
-                {% if recent_sessions %}
-
-                    {% for session in recent_sessions %}
-
+            {% if recent_assessments %}
+                {% for assessment in recent_assessments %}
                     <div class="session-row">
-
                         <div>
-                            <strong>
-                                D{{ session["domain_id"] }}
-                            </strong>
-
-                            {{ session["domain_name"] }}
+                            <strong>{{ assessment["source"] }}</strong>
+                            <span>
+                                {% if assessment["assessment_type"] == "mock" %}
+                                    Mock Readiness Exam
+                                {% elif assessment["assessment_type"] == "mixed" %}
+                                    Mixed Multi-Domain
+                                {% else %}
+                                    {{ assessment["domain_name"] }}
+                                {% endif %}
+                            </span>
                         </div>
 
                         <div class="session-result">
-
-                            {% if session["questions_answered"] > 0 %}
-
-                                {{ session["questions_correct"] }}
-                                /
-                                {{ session["questions_answered"] }}
-
-                            {% else %}
-
-                                Study
-
-                            {% endif %}
-
+                            {{ assessment["questions_correct"] }}/{{ assessment["questions_answered"] }}
                             ·
-                            {{ session["minutes_studied"] }}m
-
+                            {{
+                                (
+                                    assessment["questions_correct"]
+                                    / assessment["questions_answered"]
+                                    * 100
+                                ) | round(0) | int
+                            }}%
+                            ·
+                            {{ assessment["minutes_spent"] }}m
                         </div>
-
                     </div>
+                {% endfor %}
+            {% else %}
+                <p class="empty-state">No assessments logged yet.</p>
+            {% endif %}
+        </article>
+    </section>
 
-                    {% endfor %}
+    <section class="two-column section">
+        <article class="panel">
+            <p class="label">MOCK READINESS</p>
+            <h2>Recent Mock Exams</h2>
 
-                {% else %}
+            {% if mock_stats["results"] %}
+                {% for mock in mock_stats["results"] %}
+                    <div class="mock-row">
+                        <div>
+                            <strong>{{ mock["accuracy"] }}%</strong>
+                            <span>{{ mock["correct"] }}/{{ mock["questions"] }}</span>
+                        </div>
+                        <span>{{ mock["minutes"] }}m</span>
+                    </div>
+                {% endfor %}
 
-                    <p class="empty-state">
-                        No sessions logged yet.
-                    </p>
-
-                {% endif %}
-
-            </div>
-
+                <div class="mock-average">
+                    <span>Recent Mock Average</span>
+                    <strong>{{ mock_stats["average"] }}%</strong>
+                </div>
+            {% else %}
+                <p class="empty-state">No mock readiness exams logged yet.</p>
+            {% endif %}
         </article>
 
-
         <article class="panel">
+            <p class="label">STUDY HISTORY</p>
+            <h2>Recent Study</h2>
 
-            <p class="label">
-                CAMPAIGN
-            </p>
+            {% if recent_study %}
+                {% for session in recent_study %}
+                    <div class="session-row">
+                        <div>
+                            <strong>{{ session["resource"] }}</strong>
+                            <span>
+                                {% if session["domain_name"] %}
+                                    {{ session["domain_name"] }}
+                                {% else %}
+                                    General / Multi-Domain
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="session-result">{{ session["minutes_studied"] }}m</div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="empty-state">No study sessions logged yet.</p>
+            {% endif %}
+        </article>
+    </section>
 
-            <h2>Settings</h2>
+    <section class="two-column section">
+        <article class="panel">
+            <p class="label">CAMPAIGN SETTINGS</p>
+            <h2>Exam Timeline</h2>
 
-
-            <form
-                action="{{ url_for('update_settings') }}"
-                method="POST"
-                class="stack-form"
-            >
-
-                <label>
-                    Current Phase
-
-                    <select name="phase">
-
-                        <option
-                            value="CISM"
-                            {% if settings["phase"] == "CISM" %}
-                            selected
-                            {% endif %}
-                        >
-                            CISM
-                        </option>
-
-                        <option
-                            value="CISSP"
-                            {% if settings["phase"] == "CISSP" %}
-                            selected
-                            {% endif %}
-                        >
-                            CISSP
-                        </option>
-
-                    </select>
-
-                </label>
-
+            <form action="{{ url_for('update_settings') }}" method="POST" class="stack-form">
+                <input type="hidden" name="active_cert" value="{{ active_cert }}">
 
                 <label>
                     CISM Exam
-
-                    <input
-                        type="date"
-                        name="cism_exam_date"
-                        value="{{ settings['cism_exam_date'] }}"
-                    >
+                    <input type="date" name="cism_exam_date" value="{{ settings['cism_exam_date'] }}">
                 </label>
-
 
                 <label>
                     CISSP Exam
-
-                    <input
-                        type="date"
-                        name="cissp_exam_date"
-                        value="{{ settings['cissp_exam_date'] }}"
-                    >
+                    <input type="date" name="cissp_exam_date" value="{{ settings['cissp_exam_date'] }}">
                 </label>
-
 
                 <label>
                     Weekly Study Hours
-
-                    <input
-                        type="number"
-                        name="weekly_hour_target"
-                        min="1"
-                        max="40"
-                        value="{{ settings['weekly_hour_target'] }}"
-                    >
+                    <input type="number" name="weekly_hour_target" min="1" max="40" value="{{ settings['weekly_hour_target'] }}">
                 </label>
 
-
-                <button type="submit">
-                    Save Campaign
-                </button>
-
+                <button type="submit">Save Campaign</button>
             </form>
-
         </article>
 
-    </section>
+        <article class="panel">
+            <p class="label">{{ active_cert }} STUDY DOCTRINE</p>
 
-
-    <section class="panel doctrine section">
-
-        <p class="label">
-            STUDY DOCTRINE
-        </p>
-
-        <h2>Resource Escalation</h2>
-
-        <div class="doctrine-flow">
-
-            <div>
-                <span>01</span>
-                <strong>ISC2</strong>
-                <small>Primary curriculum</small>
-            </div>
-
-            <div class="arrow">→</div>
-
-            <div>
-                <span>02</span>
-                <strong>Pocket Prep</strong>
-                <small>Expose weakness</small>
-            </div>
-
-            <div class="arrow">→</div>
-
-            <div>
-                <span>03</span>
-                <strong>Chapple</strong>
-                <small>Targeted remediation</small>
-            </div>
-
-            <div class="arrow">→</div>
-
-            <div>
-                <span>04</span>
-                <strong>Reference / Video</strong>
-                <small>Only if still unclear</small>
-            </div>
-
-        </div>
-
-        <p class="doctrine-rule">
-            Do not add another CISSP resource because studying feels
-            uncomfortable. Find the weakness, remediate it, and retest it.
-        </p>
-
+            {% if active_cert == "CISSP" %}
+                <h2>Resource Escalation</h2>
+                <div class="doctrine-vertical">
+                    <div><span>01</span><strong>ISC2 Self-Paced</strong><small>Primary curriculum</small></div>
+                    <div><span>02</span><strong>Pocket Prep</strong><small>Expose weakness</small></div>
+                    <div><span>03</span><strong>Chapple</strong><small>Targeted remediation</small></div>
+                    <div><span>04</span><strong>Reference / Video</strong><small>Only if still unclear</small></div>
+                </div>
+            {% else %}
+                <h2>CISM Resource Stack</h2>
+                <div class="doctrine-vertical">
+                    <div><span>01</span><strong>Pocket Prep</strong><small>Primary question engine</small></div>
+                    <div><span>02</span><strong>Review Every Miss</strong><small>Understand why the answer wins</small></div>
+                    <div><span>03</span><strong>Chapple CISM Guide</strong><small>Targeted remediation</small></div>
+                    <div><span>04</span><strong>YouTube</strong><small>Only if still unclear</small></div>
+                </div>
+            {% endif %}
+        </article>
     </section>
 
 </main>
+
+{% for phase in campaign["phases"] %}
+<div id="phase-modal-{{ loop.index }}" class="phase-modal" aria-hidden="true">
+    <div class="phase-modal-backdrop"
+         onclick="closePhaseModal('phase-modal-{{ loop.index }}')"></div>
+
+    <div class="phase-modal-dialog" role="dialog" aria-modal="true">
+        <div class="phase-modal-header">
+            <div>
+                <p class="label">
+                    PHASE {{ "%02d"|format(loop.index) }} · {{ phase["status"] }}
+                </p>
+                <h2>{{ phase["title"] }}</h2>
+                <p class="modal-dates">{{ phase["dates"] }}</p>
+            </div>
+
+            <button type="button"
+                    class="modal-close"
+                    onclick="closePhaseModal('phase-modal-{{ loop.index }}')">×</button>
+        </div>
+
+        <div class="phase-modal-body">
+
+            {% if phase["adaptive_prescription"]["adaptive"] %}
+            <section class="adaptive-prescription-panel">
+                <div class="adaptive-prescription-heading">
+                    <span class="data-driven-badge">DATA DRIVEN</span>
+                    <span>LIVE PRESCRIPTION</span>
+                </div>
+
+                <h3>{{ phase["adaptive_prescription"]["headline"] }}</h3>
+                <p>{{ phase["adaptive_prescription"]["summary"] }}</p>
+
+                {% if phase["adaptive_prescription"]["actions"] %}
+                <div class="adaptive-actions">
+                    {% for action in phase["adaptive_prescription"]["actions"] %}
+                        <div class="adaptive-action">
+                            <span>{{ "%02d"|format(loop.index) }}</span>
+                            <strong>{{ action }}</strong>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </section>
+            {% endif %}
+
+            <section class="modal-section modal-objective">
+                <p class="modal-section-label">OBJECTIVE</p>
+                <p>{{ phase["objective"] }}</p>
+            </section>
+
+            <section class="modal-section">
+                <p class="modal-section-label">WHAT TO STUDY</p>
+                <ul>
+                    {% for item in phase["study_items"] %}
+                        <li>{{ item }}</li>
+                    {% endfor %}
+                </ul>
+            </section>
+
+            <section class="modal-section">
+                <p class="modal-section-label">TARGETS</p>
+                <ul>
+                    {% for target in phase["targets"] %}
+                        <li>{{ target }}</li>
+                    {% endfor %}
+                </ul>
+            </section>
+
+            <div class="modal-bottom-grid">
+                <section class="modal-resource">
+                    <span>RESOURCE STACK</span>
+                    <strong>{{ phase["resources"] }}</strong>
+                </section>
+
+                <section class="modal-exit">
+                    <span>EXIT CRITERIA</span>
+                    <strong>{{ phase["exit"] }}</strong>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<script>
+function toggleAssessmentMode() {
+    const type = document.getElementById("assessmentType").value;
+    const single = document.getElementById("singleDomainSection");
+    const mixed = document.getElementById("mixedDomainSection");
+    const mock = document.getElementById("mockSection");
+
+    if (type === "single") {
+        single.style.display = "block";
+        mixed.style.display = "none";
+        mock.style.display = "none";
+    } else if (type === "mixed") {
+        single.style.display = "none";
+        mixed.style.display = "block";
+        mock.style.display = "none";
+    } else {
+        single.style.display = "none";
+        mixed.style.display = "none";
+        mock.style.display = "block";
+    }
+}
+
+function openPhaseModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open");
+}
+
+function closePhaseModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("modal-open");
+}
+
+document.addEventListener("keydown", function(event) {
+    if (event.key !== "Escape") return;
+    const openModal = document.querySelector(".phase-modal.open");
+    if (openModal) closePhaseModal(openModal.id);
+});
+
+document.addEventListener("DOMContentLoaded", toggleAssessmentMode);
+</script>
 
 </body>
 </html>
