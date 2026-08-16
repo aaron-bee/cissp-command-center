@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certification Command Center — Sign In</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="login-page">
+<main class="login-shell">
+    <section class="login-card">
+        <p class="eyebrow">CERTIFICATION OPERATIONS</p>
+        <h1>Command Center</h1>
+        <p class="login-subtitle">
+            Sign in to access your CISM / CISSP study dashboard.
+        </p>
+
+        {% if error %}
+            <div class="flash flash-error">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST" class="stack-form">
+            <input type="hidden" name="next" value="{{ next_url }}">
+
+            <label>
+                Username
+                <input type="text" name="username" autocomplete="username" required autofocus>
+            </label>
+
+            <label>
+                Password
+                <input type="password" name="password" autocomplete="current-password" required>
+            </label>
+
+            <button type="submit">Sign In</button>
+        </form>
+    </section>
+</main>
+</body>
+</html>

@@ -1,13 +1,18 @@
 from datetime import date, datetime, timedelta
 from math import ceil
+import hmac
+import os
 
-from flask import Flask, flash, redirect, render_template, request, url_for
+from flask import Flask, flash, redirect, render_template, request, session, url_for
 
 from database import get_db_connection, initialize_database
 
 
 app = Flask(__name__)
-app.secret_key = "certification-command-center-local-dev"
+app.secret_key = os.environ.get(
+    "SECRET_KEY",
+    "certification-command-center-local-dev",
+)
 
 
 VALID_CERTIFICATIONS = {"CISSP", "CISM"}
@@ -26,6 +31,85 @@ CERTIFICATION_CONFIG = {
         "domain_count": 4,
     },
 }
+
+
+def dashboard_auth_configured():
+    return bool(os.environ.get("DASHBOARD_PASSWORD"))
+
+
+@app.before_request
+def require_dashboard_login():
+    if request.endpoint in {"login", "logout", "health", "static"}:
+        return None
+
+    if not dashboard_auth_configured():
+        return None
+
+    if session.get("dashboard_authenticated"):
+        return None
+
+    return redirect(
+        url_for(
+            "login",
+            next=request.full_path if request.query_string else request.path,
+        )
+    )
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if not dashboard_auth_configured():
+        return redirect(url_for("dashboard"))
+
+    error = None
+
+    if request.method == "POST":
+        expected_username = os.environ.get("DASHBOARD_USERNAME", "admin")
+        expected_password = os.environ.get("DASHBOARD_PASSWORD", "")
+        supplied_username = request.form.get("username", "")
+        supplied_password = request.form.get("password", "")
+
+        username_ok = hmac.compare_digest(
+            supplied_username,
+            expected_username,
+        )
+        password_ok = hmac.compare_digest(
+            supplied_password,
+            expected_password,
+        )
+
+        if username_ok and password_ok:
+            session.clear()
+            session["dashboard_authenticated"] = True
+
+            next_url = request.form.get("next", "")
+            if (
+                next_url
+                and next_url.startswith("/")
+                and not next_url.startswith("//")
+            ):
+                return redirect(next_url)
+
+            return redirect(url_for("dashboard"))
+
+        error = "Invalid username or password."
+
+    return render_template(
+        "login.html",
+        error=error,
+        next_url=request.args.get("next", ""),
+    )
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+
+@app.route("/health")
+def health():
+    return {"status": "ok"}, 200
 
 
 def get_active_certification():

@@ -1,0 +1,68 @@
+CERTIFICATION COMMAND CENTER — RENDER READY
+
+COPY THESE INTO YOUR PROJECT
+----------------------------
+app.py
+database.py
+requirements.txt
+render.yaml
+.python-version
+templates/index.html
+templates/login.html
+static/style.css
+
+WHAT CHANGED
+------------
+- Gunicorn production server.
+- Starter Render service configuration.
+- 1 GB persistent disk mounted at /var/data.
+- SQLite production path: /var/data/cissp.db.
+- Local SQLite path remains data/cissp.db.
+- Login protection using Render environment variables.
+- /health endpoint for Render health checks.
+- Python pinned to 3.11.11.
+- One Gunicorn worker to keep SQLite simple and safe for this single-user app.
+
+LOCAL TEST
+----------
+cd D:\Projects\cissp-command-center
+.\.venv\Scripts\Activate.ps1
+python database.py
+python app.py
+
+Open:
+http://127.0.0.1:5001
+
+Local login is intentionally bypassed unless you set DASHBOARD_PASSWORD.
+
+RENDER
+------
+Create a NEW Blueprint from:
+https://github.com/aaron-bee/cissp-command-center
+
+Render will read render.yaml.
+
+During initial Blueprint creation, enter:
+DASHBOARD_USERNAME
+DASHBOARD_PASSWORD
+
+SECRET_KEY is generated automatically.
+
+IMPORTANT: YOUR EXISTING LOCAL STUDY DATA
+-----------------------------------------
+The Render persistent disk starts empty.
+
+The first Render deployment will create a new production cissp.db and seed
+your February 2026 CISM historical attempt.
+
+Your current local data\cissp.db is NOT automatically uploaded to Render.
+
+If you want the current local question/study history copied to production,
+do that migration before you begin using the Render copy as the main tracker.
+
+AFTER COPYING THESE FILES
+-------------------------
+git status
+git add .
+git commit -m "v1.1 - Prepare certification dashboard for Render"
+git push origin main

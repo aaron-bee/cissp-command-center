@@ -1,9 +1,16 @@
+import os
 import sqlite3
 from pathlib import Path
 
 
 BASE_DIR = Path(__file__).resolve().parent
-DATABASE_PATH = BASE_DIR / "data" / "cissp.db"
+
+DATABASE_PATH = Path(
+    os.environ.get(
+        "DATABASE_PATH",
+        str(BASE_DIR / "data" / "cissp.db"),
+    )
+)
 
 
 CISSP_DOMAINS = [
@@ -26,9 +33,10 @@ CISM_DOMAINS = [
 
 
 def get_db_connection():
-    connection = sqlite3.connect(DATABASE_PATH)
+    connection = sqlite3.connect(DATABASE_PATH, timeout=30)
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
+    connection.execute("PRAGMA busy_timeout = 30000")
     return connection
 
 
