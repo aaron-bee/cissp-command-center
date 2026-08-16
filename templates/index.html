@@ -1,8 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>CISSP Command Center</title>
 
@@ -14,112 +19,673 @@
 
 <body>
 
-    <main class="container">
+<main class="container">
 
-        <header>
-            <p class="eyebrow">CERTIFICATION OPERATIONS</p>
-            <h1>CISSP Command Center</h1>
-            <p class="subtitle">
-                Study less. Measure more. Pass the exam.
+    <header class="hero">
+
+        <div>
+            <p class="eyebrow">
+                CERTIFICATION OPERATIONS
             </p>
-        </header>
 
-        <section class="status-card">
+            <h1>CISSP Command Center</h1>
 
-            <p class="label">CURRENT MISSION</p>
+            <p class="subtitle">
+                Measure weakness. Prescribe work. Earn the pass.
+            </p>
+        </div>
 
-            <h2>Establish CISSP Baseline</h2>
+        <div class="phase-badge">
+            {{ settings["phase"] }} PHASE
+        </div>
+
+    </header>
+
+
+    <section class="command-grid">
+
+        <article class="panel mission-panel">
+
+            <p class="label">
+                {{ next_action["priority"] }}
+            </p>
+
+            <h2>
+                {{ next_action["title"] }}
+            </h2>
+
+            <p class="mission-text">
+                {{ next_action["instruction"] }}
+            </p>
+
+        </article>
+
+
+        <article class="panel readiness-panel">
+
+            <p class="label">
+                EXAM DECISION
+            </p>
+
+            <div class="decision decision-{{ readiness['decision']|lower }}">
+                {{ readiness["decision"] }}
+            </div>
+
+            <div class="readiness-number">
+                {{ readiness["score"] }}%
+            </div>
 
             <p>
-                Complete a diagnostic assessment before beginning
-                domain-specific remediation.
+                {{ readiness["reason"] }}
             </p>
 
-            <div class="mission-grid">
+        </article>
 
-                <div>
-                    <span>Questions</span>
-                    <strong>100–150</strong>
+    </section>
+
+
+    <section class="metric-grid">
+
+        <article class="metric">
+            <span>Questions</span>
+            <strong>{{ total_questions }}</strong>
+        </article>
+
+        <article class="metric">
+            <span>Accuracy</span>
+            <strong>{{ overall_accuracy }}%</strong>
+        </article>
+
+        <article class="metric">
+            <span>Study Hours</span>
+            <strong>{{ total_hours }}</strong>
+        </article>
+
+        <article class="metric">
+            <span>Green Domains</span>
+            <strong>
+                {{ readiness.get("green_count", 0) }}/8
+            </strong>
+        </article>
+
+        <article class="metric">
+            <span>CISM</span>
+            <strong>
+                {% if cism_days is not none %}
+                    {{ cism_days }} days
+                {% else %}
+                    —
+                {% endif %}
+            </strong>
+        </article>
+
+        <article class="metric">
+            <span>CISSP</span>
+            <strong>
+                {% if cissp_days is not none %}
+                    {{ cissp_days }} days
+                {% else %}
+                    Not Set
+                {% endif %}
+            </strong>
+        </article>
+
+    </section>
+
+
+    <section class="section">
+
+        <div class="section-heading">
+            <div>
+                <p class="label">
+                    PERFORMANCE
+                </p>
+
+                <h2>Eight Domains</h2>
+            </div>
+
+            <p class="section-note">
+                Green requires ≥80% and ≥100 questions.
+            </p>
+        </div>
+
+
+        <div class="domain-grid">
+
+            {% for domain in domains %}
+
+            <article
+                class="domain-card status-{{ domain['status']|lower }}"
+            >
+
+                <div class="domain-top">
+
+                    <span>
+                        DOMAIN {{ domain["id"] }}
+                    </span>
+
+                    <strong>
+                        {{ domain["status"] }}
+                    </strong>
+
                 </div>
 
-                <div>
-                    <span>Target</span>
-                    <strong>Baseline</strong>
+
+                <h3>
+                    {{ domain["name"] }}
+                </h3>
+
+
+                <div class="domain-score">
+                    {{ domain["accuracy"] }}%
                 </div>
 
-                <div>
-                    <span>Phase</span>
-                    <strong>Diagnostic</strong>
+
+                <div class="progress-track">
+
+                    <div
+                        class="progress-fill"
+                        style="width: {{ domain['accuracy'] }}%"
+                    ></div>
+
                 </div>
+
+
+                <div class="domain-stats">
+
+                    <span>
+                        {{ domain["questions_correct"] }}
+                        /
+                        {{ domain["questions_answered"] }}
+                        correct
+                    </span>
+
+                    <span>
+                        Weight {{ domain["weight"] }}%
+                    </span>
+
+                </div>
+
+
+                {% if domain["dominant_miss"] %}
+
+                <p class="weakness">
+                    Primary miss:
+                    <strong>
+                        {{ domain["dominant_miss"] }}
+                    </strong>
+                </p>
+
+                {% endif %}
+
+            </article>
+
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+
+    <section class="two-column section">
+
+        <article class="panel">
+
+            <p class="label">
+                LOG WORK
+            </p>
+
+            <h2>Study Session</h2>
+
+
+            <form
+                action="{{ url_for('log_session') }}"
+                method="POST"
+                class="stack-form"
+            >
+
+                <label>
+                    Domain
+
+                    <select name="domain_id" required>
+
+                        {% for domain in domains %}
+
+                        <option value="{{ domain['id'] }}">
+                            D{{ domain["id"] }} —
+                            {{ domain["name"] }}
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+                </label>
+
+
+                <div class="form-grid">
+
+                    <label>
+                        Questions
+                        <input
+                            type="number"
+                            name="questions"
+                            min="0"
+                            value="0"
+                            required
+                        >
+                    </label>
+
+                    <label>
+                        Correct
+                        <input
+                            type="number"
+                            name="correct"
+                            min="0"
+                            value="0"
+                            required
+                        >
+                    </label>
+
+                    <label>
+                        Minutes
+                        <input
+                            type="number"
+                            name="minutes"
+                            min="0"
+                            value="30"
+                            required
+                        >
+                    </label>
+
+                </div>
+
+
+                <p class="form-title">
+                    Classify misses
+                </p>
+
+
+                <div class="form-grid">
+
+                    <label>
+                        Knowledge
+                        <input
+                            type="number"
+                            name="knowledge_misses"
+                            min="0"
+                            value="0"
+                        >
+                    </label>
+
+                    <label>
+                        Interpretation
+                        <input
+                            type="number"
+                            name="interpretation_misses"
+                            min="0"
+                            value="0"
+                        >
+                    </label>
+
+                    <label>
+                        CISSP Mindset
+                        <input
+                            type="number"
+                            name="mindset_misses"
+                            min="0"
+                            value="0"
+                        >
+                    </label>
+
+                </div>
+
+
+                <label>
+                    Resource
+
+                    <select name="resource">
+
+                        <option>
+                            Pocket Prep
+                        </option>
+
+                        <option>
+                            ISC2 Self-Paced
+                        </option>
+
+                        <option>
+                            Chapple Study Guide
+                        </option>
+
+                        <option>
+                            7th Edition Reference
+                        </option>
+
+                        <option>
+                            Targeted Video
+                        </option>
+
+                    </select>
+
+                </label>
+
+
+                <label>
+                    Notes
+
+                    <textarea
+                        name="notes"
+                        rows="3"
+                        placeholder="What actually gave you trouble?"
+                    ></textarea>
+                </label>
+
+
+                <button type="submit">
+                    Log Session
+                </button>
+
+            </form>
+
+        </article>
+
+
+        <article class="panel">
+
+            <p class="label">
+                REMEDIATION QUEUE
+            </p>
+
+            <h2>Weak Topics</h2>
+
+
+            <form
+                action="{{ url_for('add_topic') }}"
+                method="POST"
+                class="topic-form"
+            >
+
+                <select name="domain_id">
+
+                    {% for domain in domains %}
+
+                    <option value="{{ domain['id'] }}">
+                        D{{ domain["id"] }}
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+                <input
+                    type="text"
+                    name="topic"
+                    placeholder="Kerberos, Biba, RTO/RPO..."
+                    required
+                >
+
+                <button type="submit">
+                    Add
+                </button>
+
+            </form>
+
+
+            <div class="topic-list">
+
+                {% if open_topics %}
+
+                    {% for topic in open_topics %}
+
+                    <div class="topic-row">
+
+                        <div>
+                            <strong>
+                                D{{ topic["domain_id"] }}
+                            </strong>
+
+                            {{ topic["topic"] }}
+
+                            <small>
+                                {{ topic["domain_name"] }}
+                            </small>
+                        </div>
+
+                        <form
+                            action="{{ url_for(
+                                'resolve_topic',
+                                topic_id=topic['id']
+                            ) }}"
+                            method="POST"
+                        >
+
+                            <button class="small-button">
+                                Resolve
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                    {% endfor %}
+
+                {% else %}
+
+                    <p class="empty-state">
+                        No open weaknesses logged.
+                    </p>
+
+                {% endif %}
 
             </div>
 
-        </section>
+        </article>
 
-        <section>
+    </section>
 
-            <div class="section-heading">
-                <div>
-                    <p class="label">EXAM READINESS</p>
-                    <h2>CISSP Domains</h2>
-                </div>
+
+    <section class="two-column section">
+
+        <article class="panel">
+
+            <p class="label">
+                HISTORY
+            </p>
+
+            <h2>Recent Sessions</h2>
+
+
+            <div class="session-list">
+
+                {% if recent_sessions %}
+
+                    {% for session in recent_sessions %}
+
+                    <div class="session-row">
+
+                        <div>
+                            <strong>
+                                D{{ session["domain_id"] }}
+                            </strong>
+
+                            {{ session["domain_name"] }}
+                        </div>
+
+                        <div class="session-result">
+
+                            {% if session["questions_answered"] > 0 %}
+
+                                {{ session["questions_correct"] }}
+                                /
+                                {{ session["questions_answered"] }}
+
+                            {% else %}
+
+                                Study
+
+                            {% endif %}
+
+                            ·
+                            {{ session["minutes_studied"] }}m
+
+                        </div>
+
+                    </div>
+
+                    {% endfor %}
+
+                {% else %}
+
+                    <p class="empty-state">
+                        No sessions logged yet.
+                    </p>
+
+                {% endif %}
+
             </div>
 
-            <div class="domain-grid">
+        </article>
 
-                <div class="domain-card">
-                    <span>Domain 1</span>
-                    <h3>Security & Risk Management</h3>
-                    <p>Weight: 16%</p>
-                </div>
 
-                <div class="domain-card">
-                    <span>Domain 2</span>
-                    <h3>Asset Security</h3>
-                    <p>Weight: 10%</p>
-                </div>
+        <article class="panel">
 
-                <div class="domain-card">
-                    <span>Domain 3</span>
-                    <h3>Security Architecture & Engineering</h3>
-                    <p>Weight: 13%</p>
-                </div>
+            <p class="label">
+                CAMPAIGN
+            </p>
 
-                <div class="domain-card">
-                    <span>Domain 4</span>
-                    <h3>Communication & Network Security</h3>
-                    <p>Weight: 13%</p>
-                </div>
+            <h2>Settings</h2>
 
-                <div class="domain-card">
-                    <span>Domain 5</span>
-                    <h3>Identity & Access Management</h3>
-                    <p>Weight: 13%</p>
-                </div>
 
-                <div class="domain-card">
-                    <span>Domain 6</span>
-                    <h3>Security Assessment & Testing</h3>
-                    <p>Weight: 12%</p>
-                </div>
+            <form
+                action="{{ url_for('update_settings') }}"
+                method="POST"
+                class="stack-form"
+            >
 
-                <div class="domain-card">
-                    <span>Domain 7</span>
-                    <h3>Security Operations</h3>
-                    <p>Weight: 13%</p>
-                </div>
+                <label>
+                    Current Phase
 
-                <div class="domain-card">
-                    <span>Domain 8</span>
-                    <h3>Software Development Security</h3>
-                    <p>Weight: 10%</p>
-                </div>
+                    <select name="phase">
 
+                        <option
+                            value="CISM"
+                            {% if settings["phase"] == "CISM" %}
+                            selected
+                            {% endif %}
+                        >
+                            CISM
+                        </option>
+
+                        <option
+                            value="CISSP"
+                            {% if settings["phase"] == "CISSP" %}
+                            selected
+                            {% endif %}
+                        >
+                            CISSP
+                        </option>
+
+                    </select>
+
+                </label>
+
+
+                <label>
+                    CISM Exam
+
+                    <input
+                        type="date"
+                        name="cism_exam_date"
+                        value="{{ settings['cism_exam_date'] }}"
+                    >
+                </label>
+
+
+                <label>
+                    CISSP Exam
+
+                    <input
+                        type="date"
+                        name="cissp_exam_date"
+                        value="{{ settings['cissp_exam_date'] }}"
+                    >
+                </label>
+
+
+                <label>
+                    Weekly Study Hours
+
+                    <input
+                        type="number"
+                        name="weekly_hour_target"
+                        min="1"
+                        max="40"
+                        value="{{ settings['weekly_hour_target'] }}"
+                    >
+                </label>
+
+
+                <button type="submit">
+                    Save Campaign
+                </button>
+
+            </form>
+
+        </article>
+
+    </section>
+
+
+    <section class="panel doctrine section">
+
+        <p class="label">
+            STUDY DOCTRINE
+        </p>
+
+        <h2>Resource Escalation</h2>
+
+        <div class="doctrine-flow">
+
+            <div>
+                <span>01</span>
+                <strong>ISC2</strong>
+                <small>Primary curriculum</small>
             </div>
 
-        </section>
+            <div class="arrow">→</div>
 
-    </main>
+            <div>
+                <span>02</span>
+                <strong>Pocket Prep</strong>
+                <small>Expose weakness</small>
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div>
+                <span>03</span>
+                <strong>Chapple</strong>
+                <small>Targeted remediation</small>
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div>
+                <span>04</span>
+                <strong>Reference / Video</strong>
+                <small>Only if still unclear</small>
+            </div>
+
+        </div>
+
+        <p class="doctrine-rule">
+            Do not add another CISSP resource because studying feels
+            uncomfortable. Find the weakness, remediate it, and retest it.
+        </p>
+
+    </section>
+
+</main>
 
 </body>
 </html>
