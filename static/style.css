@@ -1,0 +1,141 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #0a0e14;
+    color: #e6edf3;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.container {
+    width: min(1200px, 92%);
+    margin: 0 auto;
+    padding: 60px 0;
+}
+
+header {
+    margin-bottom: 40px;
+}
+
+.eyebrow,
+.label {
+    color: #7d8590;
+    font-size: 0.75rem;
+    font-weight: bold;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+h1 {
+    margin: 8px 0;
+    font-size: 3rem;
+}
+
+.subtitle {
+    color: #8b949e;
+    font-size: 1.1rem;
+}
+
+.status-card {
+    background: #111820;
+    border: 1px solid #27313d;
+    border-radius: 10px;
+    padding: 30px;
+    margin-bottom: 50px;
+}
+
+.status-card h2 {
+    margin-top: 8px;
+    font-size: 1.8rem;
+}
+
+.status-card > p:not(.label) {
+    color: #9da7b3;
+}
+
+.mission-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.mission-grid div {
+    background: #0a0e14;
+    border: 1px solid #27313d;
+    border-radius: 8px;
+    padding: 18px;
+}
+
+.mission-grid span {
+    display: block;
+    color: #7d8590;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    margin-bottom: 7px;
+}
+
+.mission-grid strong {
+    font-size: 1.2rem;
+}
+
+.section-heading {
+    margin-bottom: 20px;
+}
+
+.section-heading h2 {
+    margin-top: 5px;
+}
+
+.domain-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+
+.domain-card {
+    min-height: 165px;
+    padding: 20px;
+    background: #111820;
+    border: 1px solid #27313d;
+    border-radius: 8px;
+}
+
+.domain-card span {
+    color: #7d8590;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+
+.domain-card h3 {
+    margin: 12px 0;
+    line-height: 1.3;
+}
+
+.domain-card p {
+    color: #8b949e;
+    margin: 0;
+}
+
+@media (max-width: 900px) {
+
+    .domain-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+}
+
+@media (max-width: 600px) {
+
+    .mission-grid,
+    .domain-grid {
+        grid-template-columns: 1fr;
+    }
+
+    h1 {
+        font-size: 2.2rem;
+    }
+
+}
